@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+</head>
+
+<body>
+  <style>
+
+  </style>
+  <span id="forkongithub">
+    <a href="https://github.com/ssoudan/web-nuts-rs">Fork me on GitHub
+    </a>
+  </span>
+
+  <h1>Going NUTS with WASM!</h1>
+  <p>
+    Run <a href="https://github.com/pymc-devs/nuts-rs">pymc-devs/nuts-rs</a> in your browser! Code is available in
+    <a href="https://github.com/ssoudan/web-nuts-rs">ssoudan/web-nuts</a>
+  </p>
+
+  <div class="main">
+    <div id="model">
+      The model assumes data have a multivariate normal distribution with a unit covariance matrix - and uniform priors.
+    </div>
+    <div id="input">
+      <textarea id="input_text" rows="5" cols="20" placeholder="input">a, b
+1.,20.
+1.1,20.3</textarea>
+    </div>
+
+    <div id="status">Loading WASM...</div>
+
+    <div class="controls">
+
+      <form class="control_line" onsubmit="return false">
+        <label for="seed">Seed:</label>
+        <input id="seed" type="text" placeholder="seed" value="1234" />
+        <label for="chain_count">Chains:</label>
+        <input id="chain_count" type="range" min="1" max="8" value="2" step="1" />
+        <input id="chain_count_display" type="text" value="2" />
+        <label id="tuning_label" for="tuning">Tuning:</label>
+        <input id="tuning" type="text" placeholder="tuning" value="1000" />
+        <label id="samples_label" for="samples">Samples:</label>
+        <input id="samples" type="text" placeholder="samples" value="1000" />
+        <button id="start_button">Click to start</button>
+      </form>
+
+    </div>
+    <div class="canvas">
+      <canvas id="canvas" width="2400" height="900"></canvas>
+    </div>
+
+
+    <div class="results" id="results" />
+
+  </div>
+
+</body>
+
+</html>
