@@ -36,7 +36,6 @@ impl CpuLogpFunc for Model {
         self.dims
     }
 
-    // The normal likelihood with mean MU and its gradient.
     fn logp(&mut self, position: &[f64], grad: &mut [f64]) -> Result<f64, Self::Err> {
         assert_eq!(position.len(), self.dims);
 

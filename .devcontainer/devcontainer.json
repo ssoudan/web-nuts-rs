@@ -4,7 +4,8 @@
 	"name": "web-nuts-rs",
 	"build": {
 		"context": "..",
-		"dockerfile": "./Dockerfile"
+		"dockerfile": "./Dockerfile",
+		"cacheFrom": "ghcr.io/ssoudan/web-nuts-rs-devcontainer:latest"
 	},
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile	
 	// Use 'mounts' to make the cargo cache persistent in a Docker Volume.
