@@ -34,6 +34,7 @@ pub fn be_nuts<F>(
     logp_func: F,
     num_tune: u64,
     num_samples: u64,
+    position: &[f64],
     seed: u64,
 ) -> (Vec<Box<[f64]>>, Vec<MyDivergenceInfo>)
 where
@@ -43,6 +44,8 @@ where
     let mut sampler_args = SamplerArgs::default();
 
     let dim = logp_func.dim();
+    assert_eq!(dim, position.len(), "Dimension mismatch");
+
     sampler_args.num_tune = num_tune;
 
     let chain = 0;
@@ -51,7 +54,7 @@ where
 
     // Set to some initial position
     sampler
-        .set_position(&vec![0f64; dim])
+        .set_position(position)
         .expect("Unrecoverable error during init");
 
     // Burn the first x samples to get away from the initial position

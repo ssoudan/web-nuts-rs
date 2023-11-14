@@ -15,25 +15,170 @@
   </span>
 
   <h1>Going NUTS with WASM!</h1>
-  <p>
-    Run <a href="https://github.com/pymc-devs/nuts-rs">pymc-devs/nuts-rs</a> in your browser! Code is available in
-    <a href="https://github.com/ssoudan/web-nuts-rs">ssoudan/web-nuts</a>
-  </p>
+  <div class="model">
+    <p>
+      Run <a href="https://github.com/pymc-devs/nuts-rs">pymc-devs/nuts-rs</a> in your browser! Code is available in
+      <a href="https://github.com/ssoudan/web-nuts-rs">ssoudan/web-nuts-rs</a>
+    </p>
+  </div>
 
   <div class="main">
-    <div id="model">
-      The model assumes data have a multivariate normal distribution with a unit covariance matrix - and uniform priors.
-    </div>
-    <div id="input">
-      <textarea id="input_text" rows="5" cols="20" placeholder="input">a, b
-1.,20.
-1.1,20.3</textarea>
+
+    <div id="status" class="status">Loading WASM...</div>
+
+    <div class="">
+      Regression of daily maximum temperature as collected by <a
+        href="https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily"
+        target="_blank">NOAA GHCN-Daily.</a>
+      <br />
+      More stations <a href="https://noaa-ghcn-pds.s3.amazonaws.com/index.html#csv/by_station/"
+        target="_blank">here</a>.
+
+      FYI with the stations <a href="https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00023293/detail"
+        target="_blank">USW00023293</a> (San Jose, CA), the sampling takes about 20 seconds. If you don't
+      want to wait, use the fake data provided and just run the sampling.
     </div>
 
-    <div id="status">Loading WASM...</div>
+    <input type="text" id="input_url" value="https://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station/USW00023293.csv" />
+    <button id="load_button" class="button" role="button">Load Global Historical Climatology Network daily data</button>
 
+    <div class="input">
+      <div class="input_block">
+        <textarea id="raw_text" class="input_block" rows="5" placeholder="input">ID,DATE,ELEMENT,DATA_VALUE,M_FLAG,Q_FLAG,S_FLAG,OBS_TIME
+FAKESTATION,20100121,TMAX,200,,,S
+FAKESTATION,20100317,TMAX,200,,,S
+FAKESTATION,20100403,TMAX,200,,,S
+FAKESTATION,20100506,TMAX,201,,,S
+FAKESTATION,20100615,TMAX,199,,,S
+FAKESTATION,20100619,TMAX,200,,,S
+FAKESTATION,20100801,TMAX,201,,,S
+FAKESTATION,20100821,TMAX,200,,,S
+FAKESTATION,20100826,TMAX,200,,,S
+FAKESTATION,20100928,TMAX,200,,,S
+FAKESTATION,20100930,TMAX,200,,,S
+FAKESTATION,20101120,TMAX,199,,,S
+FAKESTATION,20101223,TMAX,202,,,S
+FAKESTATION,20110130,TMAX,201,,,S
+FAKESTATION,20110228,TMAX,199,,,S
+FAKESTATION,20110313,TMAX,201,,,S
+FAKESTATION,20110322,TMAX,200,,,S
+FAKESTATION,20110525,TMAX,200,,,S
+FAKESTATION,20110530,TMAX,198,,,S
+FAKESTATION,20110724,TMAX,200,,,S
+FAKESTATION,20110724,TMAX,200,,,S
+FAKESTATION,20110915,TMAX,200,,,S
+FAKESTATION,20111027,TMAX,200,,,S
+FAKESTATION,20111101,TMAX,201,,,S
+FAKESTATION,20111107,TMAX,202,,,S
+FAKESTATION,20111217,TMAX,200,,,S
+FAKESTATION,20111227,TMAX,199,,,S
+FAKESTATION,20111231,TMAX,200,,,S
+FAKESTATION,20120215,TMAX,200,,,S
+FAKESTATION,20120803,TMAX,201,,,S
+FAKESTATION,20120918,TMAX,200,,,S
+FAKESTATION,20121023,TMAX,200,,,S
+FAKESTATION,20121129,TMAX,199,,,S
+FAKESTATION,20121203,TMAX,200,,,S
+FAKESTATION,20130116,TMAX,199,,,S
+FAKESTATION,20130117,TMAX,200,,,S
+FAKESTATION,20130209,TMAX,199,,,S
+FAKESTATION,20130212,TMAX,202,,,S
+FAKESTATION,20130402,TMAX,201,,,S
+FAKESTATION,20130403,TMAX,202,,,S
+FAKESTATION,20130423,TMAX,199,,,S
+FAKESTATION,20130727,TMAX,199,,,S
+FAKESTATION,20130802,TMAX,201,,,S
+FAKESTATION,20130831,TMAX,200,,,S
+FAKESTATION,20130930,TMAX,200,,,S
+FAKESTATION,20131120,TMAX,199,,,S
+FAKESTATION,20140411,TMAX,201,,,S
+FAKESTATION,20140427,TMAX,200,,,S
+FAKESTATION,20140527,TMAX,201,,,S
+FAKESTATION,20140724,TMAX,199,,,S
+FAKESTATION,20140921,TMAX,201,,,S
+FAKESTATION,20141209,TMAX,200,,,S
+FAKESTATION,20141214,TMAX,199,,,S
+FAKESTATION,20150222,TMAX,200,,,S
+FAKESTATION,20150315,TMAX,199,,,S
+FAKESTATION,20150325,TMAX,200,,,S
+FAKESTATION,20150401,TMAX,200,,,S
+FAKESTATION,20150606,TMAX,202,,,S
+FAKESTATION,20150620,TMAX,201,,,S
+FAKESTATION,20150813,TMAX,200,,,S
+FAKESTATION,20151204,TMAX,201,,,S
+FAKESTATION,20151224,TMAX,199,,,S
+FAKESTATION,20151227,TMAX,199,,,S
+FAKESTATION,20160105,TMAX,200,,,S
+FAKESTATION,20160129,TMAX,203,,,S
+FAKESTATION,20160213,TMAX,201,,,S
+FAKESTATION,20160326,TMAX,201,,,S
+FAKESTATION,20160517,TMAX,200,,,S
+FAKESTATION,20160816,TMAX,200,,,S
+FAKESTATION,20161104,TMAX,201,,,S
+FAKESTATION,20170125,TMAX,201,,,S
+FAKESTATION,20170130,TMAX,200,,,S
+FAKESTATION,20170218,TMAX,203,,,S
+FAKESTATION,20170416,TMAX,201,,,S
+FAKESTATION,20170418,TMAX,202,,,S
+FAKESTATION,20170427,TMAX,201,,,S
+FAKESTATION,20170810,TMAX,201,,,S
+FAKESTATION,20170916,TMAX,200,,,S
+FAKESTATION,20170918,TMAX,200,,,S
+FAKESTATION,20170921,TMAX,200,,,S
+FAKESTATION,20171002,TMAX,200,,,S
+FAKESTATION,20171107,TMAX,201,,,S
+FAKESTATION,20180109,TMAX,201,,,S
+FAKESTATION,20180131,TMAX,201,,,S
+FAKESTATION,20180226,TMAX,201,,,S
+FAKESTATION,20180415,TMAX,202,,,S
+FAKESTATION,20180429,TMAX,201,,,S
+FAKESTATION,20180819,TMAX,203,,,S
+FAKESTATION,20180830,TMAX,201,,,S
+FAKESTATION,20181115,TMAX,202,,,S
+FAKESTATION,20181213,TMAX,201,,,S
+FAKESTATION,20190204,TMAX,202,,,S
+FAKESTATION,20190322,TMAX,201,,,S
+FAKESTATION,20190525,TMAX,201,,,S
+FAKESTATION,20190628,TMAX,201,,,S
+FAKESTATION,20190705,TMAX,201,,,S
+FAKESTATION,20190828,TMAX,200,,,S
+FAKESTATION,20190912,TMAX,200,,,S
+FAKESTATION,20190913,TMAX,202,,,S
+FAKESTATION,20191114,TMAX,202,,,S
+        </textarea>
+        <div class="label">
+          Raw data
+        </div>
+      </div>
+
+      <div class="input_block">
+        <textarea id="input_text" class="input_block" rows="5" readonly>DATE, TMAX
+1970.,19.21
+1980.,19.47
+1990.,19.62
+2000.,19.85
+2010.,20.04
+2020.,20.22
+</textarea>
+        <div class="label">
+          TMAX data
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas">
+      <canvas id="plot" width="1200" height="350"></canvas>
+    </div>
+
+    <div class="model">
+      The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the intercept
+      (alpha) and the slope (beta). Sigma has a a flat prior.
+      <p class="equation">
+        TMAX[DATE] ~ Normal(alpha + beta * DATE, sigma)
+      </p>
+      Beta is then the trend in C/years.
+    </div>
     <div class="controls">
-
       <form class="control_line" onsubmit="return false">
         <label for="seed">Seed:</label>
         <input id="seed" type="text" placeholder="seed" value="1234" />
@@ -41,15 +186,15 @@
         <input id="chain_count" type="range" min="1" max="8" value="2" step="1" />
         <input id="chain_count_display" type="text" value="2" />
         <label id="tuning_label" for="tuning">Tuning:</label>
-        <input id="tuning" type="text" placeholder="tuning" value="1000" />
+        <input id="tuning" type="text" placeholder="tuning" value="100" />
         <label id="samples_label" for="samples">Samples:</label>
-        <input id="samples" type="text" placeholder="samples" value="1000" />
-        <button id="start_button">Click to start</button>
+        <input id="samples" type="text" placeholder="samples" value="100" />
       </form>
-
     </div>
+    <button id="start_button" class="button" role="button">Run</button>
+
     <div class="canvas">
-      <canvas id="canvas" width="2400" height="900"></canvas>
+      <canvas id="trace_plot" width="1200" height="650"></canvas>
     </div>
 
 
