@@ -67,7 +67,7 @@ impl TMaxPlot {
                 observed
                     .iter()
                     .map(|d_t| (d_t[0], d_t[1]))
-                    .map(|(x, y)| Circle::new((x, y), 2, RED.filled())),
+                    .map(|(x, y)| Circle::new((x, y), 1, RED.filled())),
             )
             .unwrap()
             .label("TMax")

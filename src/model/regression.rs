@@ -79,48 +79,71 @@ impl CpuLogpFunc for Regression {
             return Err(RegressionError::NegativeSigma);
         }
 
-        let logp_alpha = log_pdf_normal(position[ALPHA], 0.0, 10.0);
-        let logp_beta = log_pdf_normal(position[BETA], 0.0, 10.0);
+        let alpha = position[ALPHA];
+        let beta = position[BETA];
+        let sigma = position[SIGMA];
+
+        let logp_alpha = log_pdf_normal(alpha, 0.0, 10.0);
+        let logp_beta = log_pdf_normal(beta, 0.0, 10.0);
         let logp_sigma = 0.; // flat prior
 
-        let mu = self
-            .x
-            .iter()
-            .map(|x| position[ALPHA] + position[BETA] * x)
-            .collect::<Vec<_>>();
-        let logp_y = self
-            .y
-            .iter()
-            .zip(mu.iter())
-            .map(|(y, mu)| log_pdf_normal(*y, *mu, position[SIGMA]))
-            .sum::<f64>();
+        // let mu = self
+        // .x
+        // .iter()
+        // .map(|x| position[ALPHA] + position[BETA] * x)
+        // .collect::<Vec<_>>();
+        // let logp_y = self
+        //     .y
+        //     .iter()
+        //     .zip(mu.iter())
+        //     .map(|(y, mu)| log_pdf_normal(*y, *mu, position[SIGMA]))
+        //     .sum::<f64>();
+
+        let mut mu = Vec::with_capacity(self.x.len());
+
+        let mut logp_y = 0.;
+        for (x, y) in self.x.iter().zip(self.y.iter()) {
+            let mu_ = alpha + beta * x;
+
+            mu.push(mu_);
+            logp_y += log_pdf_normal(*y, mu_, sigma);
+        }
 
         let logp = logp_y + logp_alpha + logp_beta + logp_sigma;
 
         // now the gradients -- d logp / d alpha, d logp / d beta, d logp / d sigma
-        let d_alpha = self
-            .y
-            .iter()
-            .zip(mu.iter())
-            .map(|(y, mu)| (y - mu) / position[SIGMA].powi(2))
-            .sum::<f64>();
-        let d_beta = self
-            .x
-            .iter()
-            .zip(self.y.iter())
-            .zip(mu.iter())
-            .map(|((x, y), mu)| (y - mu) * x / position[SIGMA].powi(2))
-            .sum::<f64>();
-        let d_sigma = self
-            .y
-            .iter()
-            .zip(mu.iter())
-            .map(|(y, mu)| (y - mu).powi(2) / position[SIGMA].powi(3) - 1.0 / position[SIGMA])
-            .sum::<f64>();
+        // let d_logp_d_alpha = self
+        //     .y
+        //     .iter()
+        //     .zip(mu.iter())
+        //     .map(|(y, mu)| (y - mu) / position[SIGMA].powi(2))
+        //     .sum::<f64>();
+        // let d_logp_d_beta = self
+        //     .x
+        //     .iter()
+        //     .zip(self.y.iter())
+        //     .zip(mu.iter())
+        //     .map(|((x, y), mu)| (y - mu) * x / position[SIGMA].powi(2))
+        //     .sum::<f64>();
+        // let d_logp_d_sigma = self
+        //     .y
+        //     .iter()
+        //     .zip(mu.iter())
+        //     .map(|(y, mu)| (y - mu).powi(2) / position[SIGMA].powi(3) - 1.0 / position[SIGMA])
+        //     .sum::<f64>();
 
-        grad[ALPHA] = d_alpha;
-        grad[BETA] = d_beta;
-        grad[SIGMA] = d_sigma;
+        let mut d_logp_d_alpha = 0.;
+        let mut d_logp_d_beta = 0.;
+        let mut d_logp_d_sigma = 0.;
+        for ((x, y), mu) in self.x.iter().zip(self.y.iter()).zip(mu.iter()) {
+            d_logp_d_alpha += (y - mu) / sigma.powi(2);
+            d_logp_d_beta += (y - mu) * x / sigma.powi(2);
+            d_logp_d_sigma += (y - mu).powi(2) / sigma.powi(3) - 1.0 / sigma;
+        }
+
+        grad[ALPHA] = d_logp_d_alpha;
+        grad[BETA] = d_logp_d_beta;
+        grad[SIGMA] = d_logp_d_sigma;
 
         Ok(logp)
     }

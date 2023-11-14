@@ -35,7 +35,7 @@
         target="_blank">here</a>.
 
       FYI with the stations <a href="https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00023293/detail"
-        target="_blank">USW00023293</a> (San Jose, CA), the sampling takes about 1 minute on my machine. If you don't
+        target="_blank">USW00023293</a> (San Jose, CA), the sampling takes about 20 seconds. If you don't
       want to wait, use the fake data provided and just run the sampling.
     </div>
 
@@ -167,14 +167,16 @@ FAKESTATION,20191114,TMAX,202,,,S
     </div>
 
     <div class="canvas">
-      <canvas id="plot" width="1200" height="400"></canvas>
+      <canvas id="plot" width="1200" height="350"></canvas>
     </div>
 
     <div class="model">
-      TMAX ~ Normal(alpha + beta * DATE, sigma)
-      <br />
-      The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the slope
-      (beta) and the intercept (alpha) and a flat prior on the noise (sigma).
+      The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the intercept
+      (alpha) and the slope (beta). Sigma has a a flat prior.
+      <p class="equation">
+        TMAX[DATE] ~ Normal(alpha + beta * DATE, sigma)
+      </p>
+      Beta is then the trend in C/years.
     </div>
     <div class="controls">
       <form class="control_line" onsubmit="return false">

@@ -35,7 +35,6 @@ canvas {
 }
 
 .model {
-  display: flex;
   background-color: var(--highlight-background-color);
   border-radius: 2px;
 }
