@@ -169,10 +169,10 @@ impl Chains {
 
             let mut chart = ChartBuilder::on(root)
                 .margin(5)
-                .caption(format!("Mu[{parameter}] (posterior)"), ("sans-serif", 30))
-                .set_label_area_size(LabelAreaPosition::Left, 60)
+                .caption(format!("{parameter} (posterior)"), ("sans-serif", 30))
+                .set_label_area_size(LabelAreaPosition::Left, 70)
                 .set_label_area_size(LabelAreaPosition::Bottom, 30)
-                .set_label_area_size(LabelAreaPosition::Right, 60)
+                // .set_label_area_size(LabelAreaPosition::Right, 60)
                 .build_cartesian_2d((min_..max_).step(step).use_round(), 0..max_height)
                 .unwrap();
 
@@ -205,10 +205,10 @@ impl Chains {
             // plot the trace
             let mut chart = ChartBuilder::on(&subplots[2 * parameter_idx + 1])
                 .margin(5)
-                .caption(format!("Mu[{parameter}] (trace)"), ("sans-serif", 30))
+                .caption(format!("{parameter} (trace)"), ("sans-serif", 30))
                 .x_label_area_size(30)
                 .y_label_area_size(30)
-                .set_label_area_size(LabelAreaPosition::Right, 60)
+                .set_label_area_size(LabelAreaPosition::Right, 70)
                 .set_label_area_size(LabelAreaPosition::Bottom, 30)
                 .build_cartesian_2d(0f64..samples as f64, min_..max_)
                 .unwrap();

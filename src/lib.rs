@@ -143,8 +143,9 @@ pub fn run_with(
 
     let (observed, _parameters) = parse_csv(input_data);
 
-    // TODO(ssoudan) text
-    // TODO(ssoudan) progress bar and dynamic status
+    // TODO(ssoudan) progress bar
+    // TODO(ssoudan) workers
+    // TODO(ssoudan) posterior predictive
 
     // let model = MultivariateNormalModel {
     //     observed,

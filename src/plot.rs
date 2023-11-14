@@ -40,9 +40,9 @@ impl TMaxPlot {
 
         let mut chart = ChartBuilder::on(&root)
             .margin(5)
-            .caption("TMax", ("sans-serif", 30))
+            .caption("TMax (C)", ("sans-serif", 30))
             .x_label_area_size(30)
-            .y_label_area_size(40)
+            .y_label_area_size(50)
             .set_label_area_size(LabelAreaPosition::Right, 60)
             .set_label_area_size(LabelAreaPosition::Bottom, 30)
             .build_cartesian_2d(date_min..date_max, t_max_min..t_max_max)
