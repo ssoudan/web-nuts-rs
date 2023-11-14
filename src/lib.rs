@@ -1,240 +1,43 @@
+mod chain;
 mod model;
+
+mod plot;
 mod sampler;
 mod utils;
 
-use nuts_rs::CpuLogpFunc;
+use core::fmt;
 
-use plotters::prelude::*;
-use plotters_canvas::CanvasBackend;
+use model::regression::Regression;
 
-use sampler::{be_nuts, MyDivergenceInfo};
-use utils::set_panic_hook;
+use utils::{download, set_panic_hook};
 use wasm_bindgen::prelude::*;
 // #[global_allocator]
 // static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-#[derive(Default)]
-pub struct Run {}
-
-impl Run {
-    fn run(&self, model: model::Model, seed: u64, tuning: u64, samples: u64) -> ChainRun {
-        log(format!("seed={}", seed).as_str());
-        let (trace, stats) = be_nuts(model, tuning, samples, seed);
-
-        ChainRun { trace, stats }
-    }
+#[derive(Debug)]
+pub enum MyError {
+    UnexpectedRawDataHeader,
+    InvalidDateFormat,
 }
 
-/// A single chain run.
-struct ChainRun {
-    trace: Vec<Box<[f64]>>,
-    stats: Vec<MyDivergenceInfo>,
-}
+impl std::error::Error for MyError {}
 
-impl ChainRun {
-    /// Return the trace for a given parameter.
-    pub fn trace(&self, i: usize) -> Vec<f64> {
-        self.trace.iter().map(|x| x[i]).collect::<Vec<_>>()
-    }
-
-    /// Return the stats for divergences.
-    #[allow(dead_code)]
-    pub fn stats(&self) -> &Vec<MyDivergenceInfo> {
-        &self.stats
-    }
-}
-
-/// A collection of chains
-struct Chains {
-    chains: Vec<ChainRun>,
-    dim: usize,
-    parameters: Vec<String>,
-}
-
-impl Chains {
-    /// Runs a collection of chains - sequentially.
-    pub fn run(
-        seed: u64,
-        model: model::Model,
-        chain_count: u64,
-        tuning: u64,
-        samples: u64,
-    ) -> Self {
-        let chains = (0..chain_count)
-            .map(|x| Run::default().run(model.clone(), seed + x, tuning, samples))
-            .collect();
-
-        Chains {
-            chains,
-            dim: model.dim(),
-            parameters: model.parameters.clone(),
+impl fmt::Display for MyError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            MyError::UnexpectedRawDataHeader => write!(f, "Unexpected raw data header"),
+            MyError::InvalidDateFormat => write!(f, "Invalid date format - expected YYYYMMDD"),
         }
     }
+}
 
-    /// Returns the extrema for a given parameter - across all chains.
-    pub fn extrema(&self, i: usize) -> (f64, f64) {
-        let mut min = f64::INFINITY;
-        let mut max = f64::NEG_INFINITY;
-
-        for chain in &self.chains {
-            let (min_, max_) = chain
-                .trace(i)
-                .iter()
-                .fold((f64::INFINITY, f64::NEG_INFINITY), |(min, max), x| {
-                    (min.min(*x), max.max(*x))
-                });
-
-            min = min.min(min_);
-            max = max.max(max_);
-        }
-
-        (min, max)
-    }
-
-    /// Returns the traces for a given parameter
-    pub fn traces(&self, i: usize) -> Vec<Vec<f64>> {
-        self.chains.iter().map(|x| x.trace(i)).collect()
-    }
-
-    fn plot(&self, canvas_id: &str, chains: &Chains, samples: u64) {
-        let backend = CanvasBackend::new(canvas_id).expect("cannot find canvas");
-        let root = backend.into_drawing_area();
-
-        root.fill(&WHITE).unwrap();
-
-        // split into DIMS horizontal subplots and 2 vertical subplots
-        let subplots = root.split_evenly((self.dim, 2));
-
-        let colors = [RED, GREEN, BLUE, MAGENTA, CYAN, YELLOW];
-
-        let parameters = self.parameters.clone();
-
-        // plot the histogram and traces
-        for row in 0..self.dim {
-            let parameter = &parameters[row];
-            let (min_, max_) = chains.extrema(row);
-
-            let param_traces = chains.traces(row);
-
-            // ceil and floor
-            let (min_, max_) = (min_.floor(), max_.ceil());
-            // step size
-            let step = 0.1;
-
-            // compute the height of the largest bin in the histogram
-            let max_height = param_traces
-                .iter()
-                .map(|x| {
-                    let mut counts = vec![0u32; ((max_ - min_) / step) as usize];
-                    for x in x.iter() {
-                        let idx = ((x - min_) / step) as usize;
-                        counts[idx] += 1;
-                    }
-                    counts.iter().copied().max().unwrap()
-                })
-                .max()
-                .unwrap();
-
-            // plot the histogram
-            let root = &subplots[2 * row];
-
-            root.fill(&WHITE).unwrap();
-
-            let mut chart = ChartBuilder::on(root)
-                .margin(5)
-                .caption(format!("Mu[{parameter}] (posterior)"), ("sans-serif", 30))
-                .set_label_area_size(LabelAreaPosition::Left, 60)
-                .set_label_area_size(LabelAreaPosition::Bottom, 30)
-                .set_label_area_size(LabelAreaPosition::Right, 60)
-                .build_cartesian_2d((min_..max_).step(step).use_round(), 0..max_height)
-                .unwrap();
-
-            chart
-                .configure_mesh()
-                .disable_x_mesh()
-                .disable_y_mesh()
-                .y_desc("Count")
-                .y_label_style(TextStyle::from(("sans-serif", 20)).color(&BLACK))
-                .x_label_style(TextStyle::from(("sans-serif", 20)).color(&BLACK))
-                .draw()
-                .unwrap();
-
-            for (chain, param_trace) in param_traces.iter().enumerate() {
-                let color = colors[chain % colors.len()];
-                let style = color.mix(0.2).filled();
-
-                let actual = Histogram::vertical(&chart)
-                    .style(style)
-                    .data(param_trace.iter().map(|x| (*x, 1)));
-
-                chart
-                    .draw_series(actual)
-                    .unwrap()
-                    .label(format!("Chain {chain}"))
-                    .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], style));
-            }
-            chart.configure_series_labels().draw().unwrap();
-
-            // plot the trace
-            let mut chart = ChartBuilder::on(&subplots[2 * row + 1])
-                .margin(5)
-                .caption(format!("Mu[{parameter}] (trace)"), ("sans-serif", 30))
-                .x_label_area_size(30)
-                .y_label_area_size(30)
-                .set_label_area_size(LabelAreaPosition::Right, 60)
-                .set_label_area_size(LabelAreaPosition::Bottom, 30)
-                .build_cartesian_2d(0f64..samples as f64, min_..max_)
-                .unwrap();
-
-            chart
-                .configure_mesh()
-                .x_labels(3)
-                .y_labels(3)
-                .x_label_style(TextStyle::from(("sans-serif", 20)).color(&BLACK))
-                .y_label_style(TextStyle::from(("sans-serif", 20)).color(&BLACK))
-                .draw()
-                .unwrap();
-
-            for (chain, param_trace) in param_traces.iter().enumerate() {
-                let color = colors[chain % colors.len()];
-
-                chart
-                    .draw_series(LineSeries::new(
-                        (0..samples)
-                            .zip(param_trace.iter())
-                            .map(|(i, x)| (i as f64, *x)),
-                        Into::<ShapeStyle>::into(color).stroke_width(1),
-                    ))
-                    .unwrap()
-                    .label(format!("Chain {chain}"))
-                    .legend(move |(x, y)| {
-                        Rectangle::new([(x, y - 5), (x + 10, y + 5)], color.filled())
-                    });
-            }
-
-            chart
-                .configure_series_labels()
-                .background_style(WHITE.mix(0.8))
-                .border_style(BLACK)
-                .draw()
-                .unwrap();
-        }
-
-        root.present().unwrap();
+impl From<MyError> for JsValue {
+    fn from(val: MyError) -> Self {
+        JsValue::from_str(&format!("{}", val))
     }
 }
 
-#[wasm_bindgen]
-pub fn run_with(
-    canvas_id: &str,
-    seed: u64,
-    input_data: String,
-    chain_count: u64,
-    tuning: u64,
-    samples: u64,
-) {
-    set_panic_hook();
-
+fn parse_csv(input_data: String) -> (Vec<Vec<f64>>, Vec<String>) {
     let input_data = input_data.trim();
     let lines: Vec<_> = input_data.split('\n').collect();
     let headers = lines[0];
@@ -256,14 +59,124 @@ pub fn run_with(
         })
         .collect::<Vec<_>>();
 
-    let model = model::Model {
-        observed,
-        dims: parameters.len(),
-        parameters,
-    };
-    let chains = Chains::run(seed, model, chain_count, tuning, samples);
+    (observed, parameters)
+}
 
-    chains.plot(canvas_id, &chains, samples)
+/// Returns the date as a float representing the time in years
+/// The input date is a string in the format YYYYMMDD.
+fn parse_date(date: &str) -> Result<f64, MyError> {
+    let year = date[0..4].parse::<i32>().unwrap();
+    let month = date[4..6].parse::<u32>().unwrap();
+    let day = date[6..8].parse::<u32>().unwrap();
+
+    let date =
+        chrono::NaiveDate::from_ymd_opt(year, month, day).ok_or(MyError::InvalidDateFormat)?;
+
+    let epoch = chrono::NaiveDate::from_ymd_opt(0, 1, 1).unwrap();
+
+    let duration = date.signed_duration_since(epoch);
+    let duration = duration.num_seconds() as f64;
+
+    Ok(duration / (365.25 * 24.0 * 60.0 * 60.0))
+}
+
+#[wasm_bindgen]
+pub fn prepare(raw_data: String) -> Result<String, MyError> {
+    // receive data as CSV with the following header:
+    // ID,DATE,ELEMENT,DATA_VALUE,M_FLAG,Q_FLAG,S_FLAG,OBS_TIME
+    const EXPECTED_HEADER: &str = "ID,DATE,ELEMENT,DATA_VALUE,M_FLAG,Q_FLAG,S_FLAG,OBS_TIME";
+
+    let raw_data = raw_data.trim();
+    let lines: Vec<_> = raw_data.split('\n').collect();
+    let header = lines[0];
+
+    if header != EXPECTED_HEADER {
+        return Err(MyError::UnexpectedRawDataHeader);
+    }
+
+    let mut output = String::new();
+    // the output header is: DATE,TMAX
+    output.push_str("DATE,TMAX\n");
+
+    for line in lines.iter().skip(1) {
+        let line = line.trim();
+        let fields: Vec<_> = line.split(',').collect();
+        let date = fields[1];
+        let element = fields[2];
+        let data_value = fields[3];
+        let q_flag = fields[5];
+
+        if element == "TMAX" && q_flag.is_empty() {
+            // convert the date to years (float) since EPOCH
+            let date = parse_date(date)?;
+            let data_value = data_value.parse::<i32>().unwrap() as f64 / 10.0;
+
+            output.push_str(format!("{},{}\n", date, data_value).as_str());
+        }
+    }
+
+    Ok(output)
+}
+
+#[wasm_bindgen]
+pub fn plot_tmax(canvas_id: &str, input_data: String) {
+    set_panic_hook();
+
+    let (observed, parameters) = parse_csv(input_data);
+
+    let p = plot::TMaxPlot::new(observed, parameters);
+
+    p.plot(canvas_id);
+}
+
+#[wasm_bindgen]
+pub fn run_with(
+    canvas_id: &str,
+    seed: u64,
+    input_data: String,
+    chain_count: u64,
+    tuning: u64,
+    samples: u64,
+) {
+    set_panic_hook();
+    log("Running");
+
+    let (observed, _parameters) = parse_csv(input_data);
+
+    // TODO(ssoudan) text
+    // TODO(ssoudan) progress bar and dynamic status
+
+    // let model = MultivariateNormalModel {
+    //     observed,
+    //     dims: parameters.len(),
+    //     parameters,
+    // };
+    // let initial_position = vec![0.0; model.dim()];
+    let x = observed.iter().map(|x| x[0]).collect::<Vec<_>>();
+    let y = observed.iter().map(|x| x[1]).collect::<Vec<_>>();
+
+    let model = Regression::new(x.clone(), y.clone());
+
+    // y = alpha + beta * x + noise
+    let guessed_beta = y.iter().sum::<f64>() / x.iter().sum::<f64>();
+    let guessed_alpha = y.iter().sum::<f64>() / y.len() as f64;
+    let guessed_sigma = x
+        .iter()
+        .zip(y.iter())
+        .map(|(x, y)| (y - guessed_alpha - guessed_beta * x).powi(2))
+        .sum::<f64>()
+        .sqrt()
+        / y.len() as f64;
+    let initial_position = vec![guessed_alpha, guessed_beta, guessed_sigma];
+    log(format!("initial_position = {:?}", initial_position).as_str());
+
+    let chains = chain::Chains::run(seed, model, chain_count, tuning, samples, initial_position);
+
+    log("Plotting");
+
+    chains.plot(canvas_id, &chains, samples);
+
+    log("Done");
 }
 
 #[wasm_bindgen]
@@ -273,3 +186,8 @@ extern "C" {
     fn log(s: &str);
 }
 
+#[wasm_bindgen]
+pub async fn get_data(url: String) -> String {
+    let data = download(url).await;
+    data.unwrap().as_string().unwrap()
+}

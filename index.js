@@ -17,7 +17,10 @@ import('./pkg')
         const results = document.getElementById("results");
         const tuning = document.getElementById("tuning");
         const samples = document.getElementById("samples");
+        const raw = document.getElementById("raw_text");
         const input = document.getElementById("input_text");
+        const input_url = document.getElementById("input_url");
+        const load_button = document.getElementById("load_button");
 
         const int = (str) => {
             const i = parseInt(str);
@@ -27,13 +30,9 @@ import('./pkg')
             return i;
         }
 
-       // update chain_count_display on chain_count change
-         chain_count_input.onchange = () => {
-                const chain_count = int(chain_count_input.value);
-                chain_count_display.value = chain_count.toString();
-            } 
-
         const run = () => {
+            const start = Date.now();   
+
             const chain_count = BigInt(chain_count_display.value);
             const seed = BigInt(seed_input.value);
 
@@ -47,26 +46,65 @@ import('./pkg')
             console.log(`tuning: ${tuning_value}`);
             console.log(`samples: ${samples_value}`);
 
-            wasm.run_with("canvas", seed, input_data, chain_count, tuning_value, samples_value);
+            wasm.run_with("trace_plot", seed, input_data, chain_count, tuning_value, samples_value);
             
+            const end = Date.now();
+            const elapsed = end - start;
+            results.textContent = `Elapsed: ${elapsed}ms`;  
         }
 
-        // initial run
-        run();
+        const prepare_and_run = () => {
+            try {
+                console.log("preparing");
+                input.value = wasm.prepare(raw.value);
+
+                // plot the input
+                console.log("plotting");
+                wasm.plot_tmax("plot", input.value);
+                // run
+                console.log("running");
+                run();
+            } catch (e) {
+                console.error(e);
+                input.value = "Error: " + e
+            }; 
+        }
+
+        load_button.onclick = async() => {
+            const url = input_url.value;
+
+            // fetch the data
+            console.log(`Fetching ${url}`);
+            const response = await fetch(url);
+            const text = await response.text();
+            raw.value = text;
+
+            prepare_and_run();
+        }
+
+        // on_change of raw, update input
+        raw.onchange = () => {
+            console.log("raw changed");
+            prepare_and_run();
+        }
+
+        prepare_and_run();
+
+       // update chain_count_display on chain_count change
+        chain_count_input.onchange = () => {
+            const chain_count = int(chain_count_input.value);
+            chain_count_display.value = chain_count.toString();
+        } 
+
+    
         status.textContent = "Ready. Click the button to start.";
 
         start_button.onclick = () => {                                      
-            const start = Date.now();            
-            
             run();
 
             // update the seed
             const new_seed = Math.floor(Math.random() * 10000);
             seed_input.value = new_seed.toString();
-            
-            const end = Date.now();
-            const elapsed = end - start;
-            results.textContent = `Elapsed: ${elapsed}ms`;            
         }
        
     })

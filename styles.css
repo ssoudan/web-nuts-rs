@@ -87,7 +87,19 @@ canvas {
 
 #input {
   display: flex;
+  width: 100%;
+  margin: 0 auto;
+}
 
+#raw_text {
+  width: 100%;
+  margin: 0 auto;
+}
+
+#input_text {
+  width: 100%;
+  margin: 0 auto;
+  background-color: lightgray;
 }
 
 .controls {

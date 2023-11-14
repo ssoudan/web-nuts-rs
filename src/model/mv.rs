@@ -4,24 +4,26 @@ use std::fmt::Formatter;
 
 use nuts_rs::{CpuLogpFunc, LogpError};
 
+use crate::chain::Model;
+
 #[derive(Debug, Clone)]
-pub(crate) struct Model {
+pub(crate) struct MultivariateNormalModel {
     pub(crate) observed: Vec<Vec<f64>>,
     pub(crate) dims: usize,
     pub(crate) parameters: Vec<String>,
 }
 
 #[derive(Debug)]
-pub(crate) enum ModelError {}
+pub(crate) enum MutlivariateNormalError {}
 
-impl std::error::Error for ModelError {}
-impl Display for ModelError {
+impl std::error::Error for MutlivariateNormalError {}
+impl Display for MutlivariateNormalError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Some error")
     }
 }
 
-impl LogpError for ModelError {
+impl LogpError for MutlivariateNormalError {
     fn is_recoverable(&self) -> bool {
         true
     }
@@ -29,8 +31,14 @@ impl LogpError for ModelError {
 
 const SIGMA: f64 = 1.;
 
-impl CpuLogpFunc for Model {
-    type Err = ModelError;
+impl Model for MultivariateNormalModel {
+    fn parameters(&self) -> Vec<String> {
+        self.parameters.clone()
+    }
+}
+
+impl CpuLogpFunc for MultivariateNormalModel {
+    type Err = MutlivariateNormalError;
 
     fn dim(&self) -> usize {
         self.dims

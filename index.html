@@ -17,21 +17,48 @@
   <h1>Going NUTS with WASM!</h1>
   <p>
     Run <a href="https://github.com/pymc-devs/nuts-rs">pymc-devs/nuts-rs</a> in your browser! Code is available in
-    <a href="https://github.com/ssoudan/web-nuts-rs">ssoudan/web-nuts</a>
+    <a href="https://github.com/ssoudan/web-nuts-rs">ssoudan/web-nuts-rs</a>
   </p>
 
   <div class="main">
-    <div id="model">
-      The model assumes data have a multivariate normal distribution with a unit covariance matrix - and uniform priors.
-    </div>
+
+    <input type="text" id="input_url" value="https://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station/AGM00060353.csv" />
+    <button id="load_button">Load CSV</button>
     <div id="input">
-      <textarea id="input_text" rows="5" cols="20" placeholder="input">a, b
-1.,20.
-1.1,20.3</textarea>
+      <textarea id="raw_text" rows="5" placeholder="input">ID,DATE,ELEMENT,DATA_VALUE,M_FLAG,Q_FLAG,S_FLAG,OBS_TIME
+STATION_1,19700101,TMIN,120,,,S,
+STATION_1,19700101,TMAX,192,,,S,
+STATION_1,19800101,TMIN,122,,,S,
+STATION_1,19800101,TMAX,194,,,S,
+STATION_1,19900101,TMIN,124,,,S,
+STATION_1,19900101,TMAX,196,,,S,
+STATION_1,20000101,TMIN,124,,,S,
+STATION_1,20000101,TMAX,198,,,S,
+STATION_1,20100101,TMIN,124,,,S,
+STATION_1,20100101,TMAX,200,,,S,
+</textarea>
+
+      <textarea id="input_text" rows="5" placeholder="input" readonly>DATE, TMAX
+1970.,19.2
+1980.,19.4
+1990.,19.6
+2000.,19.8
+2010.,20.
+</textarea>
+    </div>
+
+    <div class="canvas">
+      <canvas id="plot" width="2400" height="450"></canvas>
     </div>
 
     <div id="status">Loading WASM...</div>
 
+    <div id="model">
+      TMAX ~ Normal(alpha + beta * DATE, sigma)
+      <br />
+      The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the slope
+      (beta) and the intercept (alpha) and a flat prior on the noise (sigma).
+    </div>
     <div class="controls">
 
       <form class="control_line" onsubmit="return false">
@@ -41,15 +68,15 @@
         <input id="chain_count" type="range" min="1" max="8" value="2" step="1" />
         <input id="chain_count_display" type="text" value="2" />
         <label id="tuning_label" for="tuning">Tuning:</label>
-        <input id="tuning" type="text" placeholder="tuning" value="1000" />
+        <input id="tuning" type="text" placeholder="tuning" value="500" />
         <label id="samples_label" for="samples">Samples:</label>
-        <input id="samples" type="text" placeholder="samples" value="1000" />
+        <input id="samples" type="text" placeholder="samples" value="500" />
         <button id="start_button">Click to start</button>
       </form>
-
     </div>
+
     <div class="canvas">
-      <canvas id="canvas" width="2400" height="900"></canvas>
+      <canvas id="trace_plot" width="2400" height="900"></canvas>
     </div>
 
 
