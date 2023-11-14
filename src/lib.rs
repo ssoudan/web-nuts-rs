@@ -9,7 +9,7 @@ use core::fmt;
 
 use model::regression::Regression;
 
-use utils::{download, set_panic_hook};
+use utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 // #[global_allocator]
 // static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -187,8 +187,8 @@ extern "C" {
     fn log(s: &str);
 }
 
-#[wasm_bindgen]
-pub async fn get_data(url: String) -> String {
-    let data = download(url).await;
-    data.unwrap().as_string().unwrap()
-}
+// #[wasm_bindgen]
+// pub async fn get_data(url: String) -> String {
+//     let data = download(url).await;
+//     data.unwrap().as_string().unwrap()
+// }
