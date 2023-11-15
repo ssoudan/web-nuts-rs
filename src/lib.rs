@@ -156,6 +156,18 @@ pub fn run_with(
     let x = observed.iter().map(|x| x[0]).collect::<Vec<_>>();
     let y = observed.iter().map(|x| x[1]).collect::<Vec<_>>();
 
+    if x.len() != y.len() {
+        panic!("x and y must have the same length");
+    }
+
+    if x.len() == 0 {
+        panic!("x and y must have at least one element");
+    }
+
+    let x0 = x[0];
+
+    let x = x.iter().map(|x| x - x0).collect::<Vec<_>>();
+
     let model = Regression::new(x.clone(), y.clone());
 
     // y = alpha + beta * x + noise
