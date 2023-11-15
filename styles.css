@@ -23,6 +23,10 @@ canvas {
   border-radius: 2px;
 }
 
+.equation {
+  text-align: center;
+}
+
 
 .main {
   position: relative;

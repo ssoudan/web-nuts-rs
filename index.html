@@ -174,7 +174,11 @@ FAKESTATION,20191114,TMAX,202,,,S
       The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the intercept
       (alpha) and the slope (beta). Sigma has a a flat prior.
       <p class="equation">
-        TMAX[DATE] ~ Normal(alpha + beta * DATE, sigma)
+        TMAX[DATE-DATE0] ~ Normal(alpha + beta * (DATE-DATE0), sigma) <br />
+        alpha ~ Normal(0, 10) <br />
+        beta ~ Normal(0, 10) <br />
+        sigma ~ Uniform <br />
+        DATE0 is the first date in the dataset.
       </p>
       Beta is then the trend in C/years.
     </div>
@@ -183,12 +187,12 @@ FAKESTATION,20191114,TMAX,202,,,S
         <label for="seed">Seed:</label>
         <input id="seed" type="text" placeholder="seed" value="1234" />
         <label for="chain_count">Chains:</label>
-        <input id="chain_count" type="range" min="1" max="8" value="2" step="1" />
-        <input id="chain_count_display" type="text" value="2" />
+        <input id="chain_count" type="range" min="1" max="8" value="3" step="1" />
+        <input id="chain_count_display" type="text" value="3" />
         <label id="tuning_label" for="tuning">Tuning:</label>
-        <input id="tuning" type="text" placeholder="tuning" value="100" />
+        <input id="tuning" type="text" placeholder="tuning" value="400" />
         <label id="samples_label" for="samples">Samples:</label>
-        <input id="samples" type="text" placeholder="samples" value="100" />
+        <input id="samples" type="text" placeholder="samples" value="400" />
       </form>
     </div>
     <button id="start_button" class="button" role="button">Run</button>
