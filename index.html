@@ -35,12 +35,16 @@
         target="_blank">here</a>.
 
       FYI with the stations <a href="https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00023293/detail"
-        target="_blank">USW00023293</a> (San Jose, CA), the sampling takes about 20 seconds. If you don't
+        target="_blank">USW00023293</a> (San Jose, CA), the sampling takes about 10 seconds. If you don't
       want to wait, use the fake data provided and just run the sampling.
     </div>
 
     <input type="text" id="input_url" value="https://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station/USW00023293.csv" />
-    <button id="load_button" class="button" role="button">Load Global Historical Climatology Network daily data</button>
+    <button id="load_button" class="button" role="button">&gt;&gt;&gt;&gt; Load Global Historical Climatology Network
+      daily data &lt;&lt;&lt;&lt;
+    </button>
+
+    <textarea id="posterior" rows="5" readonly hidden></textarea>
 
     <div class="input">
       <div class="input_block">
@@ -171,7 +175,8 @@ FAKESTATION,20191114,TMAX,202,,,S
     </div>
 
     <div class="model">
-      The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the intercept
+      The model is a simple bayesian regression with a linear model and a normal prior (mu=0, sigma=10) on the
+      intercept
       (alpha) and the slope (beta). Sigma has a a flat prior.
       <p class="equation">
         TMAX[DATE-DATE0] ~ Normal(alpha + beta * (DATE-DATE0), sigma) <br />
@@ -195,9 +200,9 @@ FAKESTATION,20191114,TMAX,202,,,S
         <input id="samples" type="text" placeholder="samples" value="400" />
       </form>
     </div>
-    <button id="start_button" class="button" role="button">Run</button>
+    <button id="start_button" class="button" role="button">&gt;&gt;&gt;&gt; Run &lt;&lt;&lt;&lt;</button>
 
-    <div class="canvas">
+    <div class=" canvas">
       <canvas id="trace_plot" width="1200" height="650"></canvas>
     </div>
 

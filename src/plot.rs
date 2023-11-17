@@ -5,16 +5,24 @@ use plotters_canvas::CanvasBackend;
 /// Plot TMAX as a function of time
 pub(crate) struct TMaxPlot {
     observed: Vec<Vec<f64>>,
+    regression: Option<Vec<Vec<f64>>>,
 }
 
 impl TMaxPlot {
     /// Create a new plot
-    pub(crate) fn new(observed: Vec<Vec<f64>>, parameters: Vec<String>) -> Self {
+    pub(crate) fn new(
+        observed: Vec<Vec<f64>>,
+        regression: Option<Vec<Vec<f64>>>,
+        parameters: Vec<String>,
+    ) -> Self {
         assert_eq!(parameters.len(), 2);
         assert_eq!(parameters[0], "DATE");
         assert_eq!(parameters[1], "TMAX");
 
-        Self { observed }
+        Self {
+            observed,
+            regression,
+        }
     }
 
     /// Plot the data
@@ -72,6 +80,36 @@ impl TMaxPlot {
             .unwrap()
             .label("TMax")
             .legend(move |(x, y)| Rectangle::new([(x, y - 5), (x + 10, y + 5)], RED.filled()));
+
+        if let Some(regression) = &self.regression {
+            let mut first = true;
+            for alpha_beta_sigma in regression {
+                let alpha = alpha_beta_sigma[0];
+                let beta = alpha_beta_sigma[1];
+                // let sigma = alpha_beta_sigma[2];
+
+                let x = observed.iter().map(|x| x[0]).collect::<Vec<_>>();
+                let x0 = x[0];
+                let y_ = x
+                    .iter()
+                    .map(|x| alpha + beta * (x - x0))
+                    .collect::<Vec<_>>();
+
+                let c = chart
+                    .draw_series(LineSeries::new(
+                        x.iter().zip(y_.iter()).map(|(x, y)| (*x, *y)),
+                        Into::<ShapeStyle>::into(BLUE.mix(0.6)).stroke_width(1),
+                    ))
+                    .unwrap();
+
+                if first {
+                    c.label("Regression").legend(move |(x, y)| {
+                        Rectangle::new([(x, y - 5), (x + 10, y + 5)], BLUE.filled())
+                    });
+                    first = false;
+                }
+            }
+        }
 
         chart.configure_series_labels().draw().unwrap();
 

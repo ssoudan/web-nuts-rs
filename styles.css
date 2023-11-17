@@ -116,6 +116,7 @@ canvas {
   padding: 10px 21px 10px 21px;
   text-align: center;
   text-transform: none;
+  font-weight: bold;
   transition: color .01s ease-in-out, background .01s ease-in-out, opacity .01s ease-in-out, box-shadow .01s ease-in-out;
   user-select: none;
   -webkit-user-select: none;

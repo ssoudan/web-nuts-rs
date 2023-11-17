@@ -1,8 +1,11 @@
 //! Logic to run the sampling of one [`ChainRun`]or multiple chains [`Chains`].
 
+use std::collections::HashMap;
+
 use nuts_rs::CpuLogpFunc;
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
+use rand::seq::SliceRandom;
 
 use crate::{
     log,
@@ -116,6 +119,31 @@ impl Chains {
         self.chains.iter().map(|x| x.trace(i)).collect()
     }
 
+    /// Sample the posterior by picking a random sample from a random chain.
+    pub fn sample_posterior(&self, n: usize) -> HashMap<String, Vec<f64>> {
+        let mut rng = rand::thread_rng();
+
+        let mut samples = HashMap::new();
+
+        for _ in 0..n {
+            // pick a chain
+            let chain = self.chains.choose(&mut rng).unwrap();
+
+            // pick a sample
+            let sample = chain.trace.choose(&mut rng).unwrap();
+
+            for (j, parameter) in self.parameters.iter().enumerate() {
+                samples
+                    .entry(parameter.clone())
+                    .or_insert_with(Vec::new)
+                    .push(sample[j]);
+            }
+        }
+
+        samples
+    }
+
+    /// Plot the traces and histograms for all parameters.
     pub(crate) fn plot(&self, canvas_id: &str, chains: &Chains, samples: u64) {
         let backend = CanvasBackend::new(canvas_id).expect("cannot find canvas");
         let root = backend.into_drawing_area();

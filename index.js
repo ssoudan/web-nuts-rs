@@ -21,6 +21,7 @@ import('./pkg')
         const input = document.getElementById("input_text");
         const input_url = document.getElementById("input_url");
         const load_button = document.getElementById("load_button");
+        const posterior = document.getElementById("posterior");
 
         const int = (str) => {
             const i = parseInt(str);
@@ -28,6 +29,32 @@ import('./pkg')
                 return 0;
             }
             return i;
+        }
+
+        const clear_data = () => {
+            try{
+                // clear the canvas
+                const canvas = document.getElementById("trace_plot");
+                const ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // clear the posterior
+                posterior.textContent = "";
+
+            } catch (e) {
+                console.error(e);
+                input.value = "Error: " + e
+            }; 
+        }
+
+        const plot = () => {
+            try {
+                console.log("plotting");                
+                wasm.plot_tmax("plot", posterior.textContent, input.value);
+            } catch (e) {
+                console.error(e);
+                input.value = "Error: " + e
+            }; 
         }
 
         const sample = (onSuccess) => {
@@ -50,14 +77,19 @@ import('./pkg')
                 console.log(`samples: ${samples_value}`);
                 
                 setTimeout(() => {
-                    wasm.run_with("trace_plot", seed, input_data, chain_count, tuning_value, samples_value);
-                    const end = Date.now();
-                    const elapsed = end - start;
-                    results.textContent = `Elapsed: ${elapsed}ms`;                  
-                    if (onSuccess) {
-                        onSuccess();
-                    }
-                    status.textContent = "Ready";
+                    wasm.run_with("trace_plot", "posterior", seed, input_data, chain_count, tuning_value, samples_value);
+                        const end = Date.now();
+                        const elapsed = end - start;
+                        results.textContent = `Elapsed: ${elapsed}ms`;     
+                        
+                        setTimeout(() => {
+                            plot();
+
+                            if (onSuccess) {
+                                onSuccess();
+                            }
+                            status.textContent = "Ready";
+                    }, 10);
                 }, 10);
             }, 10);
         }
@@ -81,27 +113,15 @@ import('./pkg')
             }; 
         }
 
-        const plot = () => {
-            try {
-                wasm.plot_tmax("plot", input.value);
-
-                // clear the canvas
-                const canvas = document.getElementById("trace_plot");
-                const ctx = canvas.getContext("2d");
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            } catch (e) {
-                console.error(e);
-                input.value = "Error: " + e
-            }; 
-        }
-
         const prepare_and_sample = (onSuccess) => {
             prepare(() => {
                 setTimeout(() => {
+                    clear_data();
+                    
                     plot();
+
                     setTimeout(() => {
-                        sample(onSuccess);
+                        sample(onSuccess);                                                           
                     }, 10);
                 }, 10);
             });
@@ -190,6 +210,7 @@ import('./pkg')
                     // enable the button
                     load_button.disabled = false;
                     start_button.disabled = false;
+
                 }
             });
         }
