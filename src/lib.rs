@@ -132,14 +132,24 @@ pub fn prepare(raw_data: String) -> Result<String, MyError> {
 /// The input data is a CSV with the following header:
 /// "DATE,TMAX"
 ///
+/// The posterior is a CSV with the following header:
+/// "ALPHA,BETA,SIGMA"
+///
 /// The output is a plot of the data in the canvas with the given id: `canvas_id`.
 #[wasm_bindgen]
-pub fn plot_tmax(canvas_id: &str, input_data: String) {
+pub fn plot_tmax(canvas_id: &str, regression_data: String, input_data: String) {
     set_panic_hook();
 
     let (observed, parameters) = parse_csv(input_data);
 
-    let p = plot::TMaxPlot::new(observed, parameters);
+    let regression = if regression_data.is_empty() {
+        None
+    } else {
+        let (regression, _parameters) = parse_csv(regression_data);
+        Some(regression)
+    };
+
+    let p = plot::TMaxPlot::new(observed, regression, parameters);
 
     p.plot(canvas_id);
 }
@@ -150,6 +160,7 @@ pub fn plot_tmax(canvas_id: &str, input_data: String) {
 /// "DATE,TMAX"
 ///
 /// The output is a plot of the data in the canvas with the given id: `canvas_id`.
+/// The posterior is also stored in the textarea with the given id: `posterior_id`.
 ///
 /// The regression is run with the following parameters:
 /// - `seed`: seed for the random number generator - each chain will be seeded with `seed + chain_id`
@@ -160,6 +171,7 @@ pub fn plot_tmax(canvas_id: &str, input_data: String) {
 #[wasm_bindgen]
 pub fn run_with(
     canvas_id: &str,
+    posteriod_id: &str,
     seed: u64,
     input_data: String,
     chain_count: u64,
@@ -170,10 +182,6 @@ pub fn run_with(
     log("Running");
 
     let (observed, _parameters) = parse_csv(input_data);
-
-    // TODO(ssoudan) progress bar
-    // TODO(ssoudan) workers
-    // TODO(ssoudan) posterior predictive
 
     // let model = MultivariateNormalModel {
     //     observed,
@@ -216,6 +224,33 @@ pub fn run_with(
     log("Plotting");
 
     chains.plot(canvas_id, &chains, samples);
+
+    log("Sampling posterior");
+    const POSTERIOR_SAMPLES: usize = 10;
+    let posterior = chains.sample_posterior(POSTERIOR_SAMPLES);
+    let text_area = web_sys::window()
+        .unwrap()
+        .document()
+        .unwrap()
+        .get_element_by_id(posteriod_id)
+        .unwrap();
+
+    let mut posterior_str = String::new();
+    // store the posterior in the textarea as a CSV
+    // the header is: ALPHA,BETA,SIGMA (same as the model parameters)
+    posterior_str.push_str(chains.parameters.join(",").as_str());
+    posterior_str.push('\n');
+
+    for i in 0..POSTERIOR_SAMPLES {
+        let mut line = vec![];
+        for parameter in chains.parameters.iter() {
+            line.push(format!("{}", posterior.get(parameter).unwrap()[i]));
+        }
+
+        posterior_str.push_str(line.join(",").as_str());
+        posterior_str.push('\n');
+    }
+    text_area.set_text_content(Some(posterior_str.as_str()));
 
     log("Done");
 }
