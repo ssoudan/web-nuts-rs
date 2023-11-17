@@ -1,4 +1,4 @@
-//! Core logic
+//! Logic to run the sampling of one [`ChainRun`]or multiple chains [`Chains`].
 
 use nuts_rs::CpuLogpFunc;
 use plotters::prelude::*;

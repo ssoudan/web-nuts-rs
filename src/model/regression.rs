@@ -27,6 +27,10 @@ impl LogpError for RegressionError {
 }
 
 /// A regression model.
+///
+/// The model is a Bayesian regression model with a normal likelihood and
+/// normal priors on the intercept and slope. The standard deviation of the
+/// Gaussian has a flat prior.
 #[derive(Clone)]
 pub(crate) struct Regression {
     x: Vec<f64>,
@@ -87,18 +91,6 @@ impl CpuLogpFunc for Regression {
         let logp_beta = log_pdf_normal(beta, 0.0, 10.0);
         let logp_sigma = 0.; // flat prior
 
-        // let mu = self
-        // .x
-        // .iter()
-        // .map(|x| position[ALPHA] + position[BETA] * x)
-        // .collect::<Vec<_>>();
-        // let logp_y = self
-        //     .y
-        //     .iter()
-        //     .zip(mu.iter())
-        //     .map(|(y, mu)| log_pdf_normal(*y, *mu, position[SIGMA]))
-        //     .sum::<f64>();
-
         let mut mu = Vec::with_capacity(self.x.len());
 
         let mut logp_y = 0.;
@@ -112,26 +104,6 @@ impl CpuLogpFunc for Regression {
         let logp = logp_y + logp_alpha + logp_beta + logp_sigma;
 
         // now the gradients -- d logp / d alpha, d logp / d beta, d logp / d sigma
-        // let d_logp_d_alpha = self
-        //     .y
-        //     .iter()
-        //     .zip(mu.iter())
-        //     .map(|(y, mu)| (y - mu) / position[SIGMA].powi(2))
-        //     .sum::<f64>();
-        // let d_logp_d_beta = self
-        //     .x
-        //     .iter()
-        //     .zip(self.y.iter())
-        //     .zip(mu.iter())
-        //     .map(|((x, y), mu)| (y - mu) * x / position[SIGMA].powi(2))
-        //     .sum::<f64>();
-        // let d_logp_d_sigma = self
-        //     .y
-        //     .iter()
-        //     .zip(mu.iter())
-        //     .map(|(y, mu)| (y - mu).powi(2) / position[SIGMA].powi(3) - 1.0 / position[SIGMA])
-        //     .sum::<f64>();
-
         let mut d_logp_d_alpha = 0.;
         let mut d_logp_d_beta = 0.;
         let mut d_logp_d_sigma = 0.;

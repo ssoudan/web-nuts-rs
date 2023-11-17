@@ -1,4 +1,4 @@
-//! The model for the example is a 2D normal distribution with mean 3.
+//! The model for the example is a 2D normal distribution.
 use std::fmt::Display;
 use std::fmt::Formatter;
 

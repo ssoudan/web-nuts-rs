@@ -4,6 +4,7 @@ use nuts_rs::{new_sampler, Chain, CpuLogpFunc, SampleStats, SamplerArgs};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
+/// Diveregence info - WASM friendly
 #[derive(Debug)]
 pub struct MyDivergenceInfo {
     pub start_momentum: Option<Box<[f64]>>,

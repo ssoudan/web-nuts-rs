@@ -1,2 +1,14 @@
 [target.wasm32-unknown-unknown]
 runner = 'wasm-bindgen-test-runner'
+
+[build]
+rustflags = [
+    "-Dwarnings",
+    # "-Dunsafe_code",
+    "-Dmissing_docs",
+    "-Dclippy::all",
+    "-Wclippy::await_holding_lock",
+    "-Wclippy::char_lit_as_u8",
+    "-Arustdoc::invalid_rust_codeblocks",
+    "-Arustdoc::bare_urls",
+]

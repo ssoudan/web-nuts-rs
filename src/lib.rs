@@ -1,3 +1,4 @@
+//! # Bayesian regression in WebAssembly
 mod chain;
 mod model;
 
@@ -14,9 +15,12 @@ use wasm_bindgen::prelude::*;
 // #[global_allocator]
 // static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+/// Error type for this crate
 #[derive(Debug)]
 pub enum MyError {
+    /// Not a CSV header of NOAA GHCN daily data
     UnexpectedRawDataHeader,
+    /// Invalid date format
     InvalidDateFormat,
 }
 
@@ -80,6 +84,11 @@ fn parse_date(date: &str) -> Result<f64, MyError> {
     Ok(duration / (365.25 * 24.0 * 60.0 * 60.0))
 }
 
+/// Prepare the data for the regression
+/// The input data is a CSV with the following header:
+/// "ID,DATE,ELEMENT,DATA_VALUE,M_FLAG,Q_FLAG,S_FLAG,OBS_TIME"
+/// The output data is a CSV with the following header:
+/// "DATE,TMAX"
 #[wasm_bindgen]
 pub fn prepare(raw_data: String) -> Result<String, MyError> {
     // receive data as CSV with the following header:
@@ -118,6 +127,12 @@ pub fn prepare(raw_data: String) -> Result<String, MyError> {
     Ok(output)
 }
 
+/// Plot the data
+///
+/// The input data is a CSV with the following header:
+/// "DATE,TMAX"
+///
+/// The output is a plot of the data in the canvas with the given id: `canvas_id`.
 #[wasm_bindgen]
 pub fn plot_tmax(canvas_id: &str, input_data: String) {
     set_panic_hook();
@@ -129,6 +144,19 @@ pub fn plot_tmax(canvas_id: &str, input_data: String) {
     p.plot(canvas_id);
 }
 
+/// Run the regression
+///
+/// The input data is a CSV with the following header:
+/// "DATE,TMAX"
+///
+/// The output is a plot of the data in the canvas with the given id: `canvas_id`.
+///
+/// The regression is run with the following parameters:
+/// - `seed`: seed for the random number generator - each chain will be seeded with `seed + chain_id`
+/// - `input_data`: the input data
+/// - `chain_count`: number of chains to run
+/// - `tuning`: number of tuning steps
+/// - `samples`: number of samples to draw for each chain
 #[wasm_bindgen]
 pub fn run_with(
     canvas_id: &str,
@@ -160,7 +188,7 @@ pub fn run_with(
         panic!("x and y must have the same length");
     }
 
-    if x.len() == 0 {
+    if x.is_empty() {
         panic!("x and y must have at least one element");
     }
 
@@ -199,6 +227,7 @@ extern "C" {
     fn log(s: &str);
 }
 
+// Download the data from the given URL
 // #[wasm_bindgen]
 // pub async fn get_data(url: String) -> String {
 //     let data = download(url).await;
