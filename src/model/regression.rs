@@ -45,10 +45,10 @@ impl Regression {
     }
 }
 
-fn log_pdf_normal(x: f64, mu: f64, sigma: f64) -> f64 {
-    let a = -0.5 * (2.0 * std::f64::consts::PI * sigma.powi(2)).ln();
-    let b = -0.5 * ((x - mu) / sigma).powi(2);
-    a + b
+fn log_pdf_normal_propto(diff: f64, log_sigma: f64, var_inv: f64) -> f64 {
+    let norm = -log_sigma;
+    let b = -0.5 * diff * diff * var_inv;
+    norm + b
 }
 
 impl CpuLogpFunc for Regression {
@@ -87,31 +87,32 @@ impl CpuLogpFunc for Regression {
         let beta = position[BETA];
         let sigma = position[SIGMA];
 
-        let logp_alpha = log_pdf_normal(alpha, 0.0, 10.0);
-        let logp_beta = log_pdf_normal(beta, 0.0, 10.0);
+        let logp_alpha = log_pdf_normal_propto(alpha, 10f64.ln(), 0.01);
+        let logp_beta = log_pdf_normal_propto(beta, 10f64.ln(), 0.01);
         let logp_sigma = 0.; // flat prior
 
-        let mut mu = Vec::with_capacity(self.x.len());
-
-        let mut logp_y = 0.;
-        for (x, y) in self.x.iter().zip(self.y.iter()) {
-            let mu_ = alpha + beta * x;
-
-            mu.push(mu_);
-            logp_y += log_pdf_normal(*y, mu_, sigma);
-        }
-
-        let logp = logp_y + logp_alpha + logp_beta + logp_sigma;
-
-        // now the gradients -- d logp / d alpha, d logp / d beta, d logp / d sigma
         let mut d_logp_d_alpha = 0.;
         let mut d_logp_d_beta = 0.;
         let mut d_logp_d_sigma = 0.;
-        for ((x, y), mu) in self.x.iter().zip(self.y.iter()).zip(mu.iter()) {
-            d_logp_d_alpha += (y - mu) / sigma.powi(2);
-            d_logp_d_beta += (y - mu) * x / sigma.powi(2);
-            d_logp_d_sigma += (y - mu).powi(2) / sigma.powi(3) - 1.0 / sigma;
+
+        let mut logp_y = 0.;
+
+        let sigma_inv = sigma.recip();
+        let var_inv = (sigma * sigma).recip();
+        let var_sigma_inv = var_inv * sigma_inv;
+        let log_sigma = sigma.ln();
+        for (x, y) in self.x.iter().zip(self.y.iter()) {
+            let mu_ = alpha + beta * x;
+            let diff = y - mu_;
+
+            logp_y += log_pdf_normal_propto(diff, log_sigma, var_inv);
+
+            d_logp_d_alpha += diff * var_inv;
+            d_logp_d_beta += diff * x * var_inv;
+            d_logp_d_sigma += diff * diff * var_sigma_inv - sigma_inv;
         }
+
+        let logp = logp_y + logp_alpha + logp_beta + logp_sigma;
 
         grad[ALPHA] = d_logp_d_alpha;
         grad[BETA] = d_logp_d_beta;
