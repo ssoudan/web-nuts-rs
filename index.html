@@ -35,8 +35,8 @@
         target="_blank">here</a>.
 
       FYI with the stations <a href="https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00023293/detail"
-        target="_blank">USW00023293</a> (San Jose, CA), the sampling takes about 10 seconds. If you don't
-      want to wait, use the fake data provided and just run the sampling.
+        target="_blank">USW00023293</a> (San Jose, CA), the downloading takes few seconds and the sampling less than 1s.
+      If you don't want to wait, use the fake data provided and just run the sampling.
     </div>
 
     <input type="text" id="input_url" value="https://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station/USW00023293.csv" />
@@ -179,11 +179,11 @@ FAKESTATION,20191114,TMAX,202,,,S
       intercept
       (alpha) and the slope (beta). Sigma has a a flat prior.
       <p class="equation">
-        TMAX[DATE-DATE0] ~ Normal(alpha + beta * (DATE-DATE0), sigma) <br />
+        TMAX[DATE-DATEM] ~ Normal(alpha + beta * (DATE-DATEM), sigma) <br />
         alpha ~ Normal(0, 10) <br />
         beta ~ Normal(0, 10) <br />
         sigma ~ Uniform <br />
-        DATE0 is the first date in the dataset.
+        DATEM is the mean of the dates in the dataset.
       </p>
       Beta is then the trend in C/years.
     </div>

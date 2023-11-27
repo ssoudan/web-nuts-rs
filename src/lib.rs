@@ -202,9 +202,9 @@ pub fn run_with(
 
     // Use the middle of the time period as reference
     // to prevent strong correlations between alpha and beta
-    let x0 = x.iter().sum::<f64>() / x.len() as f64;
+    let x_m = x.iter().sum::<f64>() / x.len() as f64;
 
-    let x = x.iter().map(|x| x - x0).collect::<Vec<_>>();
+    let x = x.iter().map(|x| x - x_m).collect::<Vec<_>>();
 
     let model = Regression::new(x.clone(), y.clone());
 
