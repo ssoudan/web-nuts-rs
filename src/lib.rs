@@ -200,7 +200,9 @@ pub fn run_with(
         panic!("x and y must have at least one element");
     }
 
-    let x0 = x[0];
+    // Use the middle of the time period as reference
+    // to prevent strong correlations between alpha and beta
+    let x0 = x.iter().sum::<f64>() / x.len() as f64;
 
     let x = x.iter().map(|x| x - x0).collect::<Vec<_>>();
 
