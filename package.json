@@ -2,7 +2,8 @@
   "scripts": {
     "release": "webpack -c webpack.config.js --mode production",
     "build": "webpack",
-    "serve": "webpack serve"
+    "serve": "webpack serve",
+    "serve:prod": "webpack serve --mode production"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "1.7.0",

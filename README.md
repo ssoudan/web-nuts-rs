@@ -8,10 +8,14 @@ See https://ssoudan.github.io/web-nuts-rs/ for a live demo of a Bayesian regress
 
 Use the devcontainer to get a ready to use environment.
 
+To run the app in development mode, run:
 ```bash
 npm i && npm run serve
 ```
 
-Open http://localhost:8080/ to see the app.
+To build the app for production, run:
+```bash
+npm i && npm run serve:prod
+```
 
-
+Either way, you can now navigate to `http://localhost:8080` to view the app.
