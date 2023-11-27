@@ -83,16 +83,17 @@ impl TMaxPlot {
 
         if let Some(regression) = &self.regression {
             let mut first = true;
+            let x = observed.iter().map(|x| x[0]).collect::<Vec<_>>();
+            let x_m = x.iter().sum::<f64>() / x.len() as f64;
+
             for alpha_beta_sigma in regression {
                 let alpha = alpha_beta_sigma[0];
                 let beta = alpha_beta_sigma[1];
                 // let sigma = alpha_beta_sigma[2];
 
-                let x = observed.iter().map(|x| x[0]).collect::<Vec<_>>();
-                let x0 = x[0];
                 let y_ = x
                     .iter()
-                    .map(|x| alpha + beta * (x - x0))
+                    .map(|x| alpha + beta * (x - x_m))
                     .collect::<Vec<_>>();
 
                 let c = chart
