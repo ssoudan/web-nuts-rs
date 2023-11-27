@@ -91,8 +91,8 @@ impl CpuLogpFunc for Regression {
         let logp_beta = log_pdf_normal_propto(beta, 10f64.ln(), 0.01);
         let logp_sigma = 0.; // flat prior
 
-        let mut d_logp_d_alpha = 0.;
-        let mut d_logp_d_beta = 0.;
+        let mut d_logp_d_alpha = -alpha / 100.;
+        let mut d_logp_d_beta = -beta / 100.;
         let mut d_logp_d_sigma = 0.;
 
         let mut logp_y = 0.;
