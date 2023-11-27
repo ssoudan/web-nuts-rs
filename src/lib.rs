@@ -209,15 +209,9 @@ pub fn run_with(
     let model = Regression::new(x.clone(), y.clone());
 
     // y = alpha + beta * x + noise
-    let guessed_beta = y.iter().sum::<f64>() / x.iter().sum::<f64>();
+    let guessed_beta = 0.;//y.iter().sum::<f64>() / x.iter().sum::<f64>();
     let guessed_alpha = y.iter().sum::<f64>() / y.len() as f64;
-    let guessed_sigma = x
-        .iter()
-        .zip(y.iter())
-        .map(|(x, y)| (y - guessed_alpha - guessed_beta * x).powi(2))
-        .sum::<f64>()
-        .sqrt()
-        / y.len() as f64;
+    let guessed_sigma = 1.;
     let initial_position = vec![guessed_alpha, guessed_beta, guessed_sigma];
     log(format!("initial_position = {:?}", initial_position).as_str());
 
