@@ -59,7 +59,7 @@ where
         .expect("Unrecoverable error during init");
 
     // Burn the first x samples to get away from the initial position
-    for _ in 0..50 {
+    for _ in 0..num_tune {
         sampler.draw().expect("Unrecoverable error during burning");
     }
 
